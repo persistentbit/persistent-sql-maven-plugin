@@ -2,6 +2,7 @@ package com.persistentbit.sql.mavenplugin;
 
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.collections.PStream;
+import com.persistentbit.sql.codegen.DbJavaGen;
 import com.persistentbit.substema.dependencies.DependencySupplier;
 import com.persistentbit.substema.dependencies.SupplierDef;
 import com.persistentbit.substema.dependencies.SupplierType;
@@ -117,6 +118,7 @@ public class SqlCodeGenMojo extends AbstractMojo {
             //});
             substemas.forEach( ss -> {
                 PList<GeneratedJava> genCodeList = ServiceJavaGen.generate(genOptions,ss.getPackageName(),ss);
+                genCodeList = genCodeList.plusAll(DbJavaGen.generate(genOptions,ss.getPackageName(),ss));
 
                 genCodeList.forEach(g -> {
                     String packagePath = g.name.getPackageName().replace('.',File.separatorChar);
