@@ -98,7 +98,8 @@ public class SqlCodeGenMojo extends AbstractMojo {
                 throw new MojoExecutionException("Error building dependencyList",e);
             }
             DependencySupplier dependencySupplier = new DependencySupplier(supplierDefs);
-            PList<RSubstema> substemas = SubstemaCompiler.compile(dependencySupplier,PList.from(packages));
+            SubstemaCompiler compiler = new SubstemaCompiler(dependencySupplier);
+            PList<RSubstema> substemas = PList.from(packages).map(p -> compiler.compile(p));
 
             substemas.forEach(ss -> getLog().info(ss.toString()));
 
@@ -117,8 +118,8 @@ public class SqlCodeGenMojo extends AbstractMojo {
             //    getLog().info(JJPrinter.print(true,new JJMapper().write(ss)));
             //});
             substemas.forEach( ss -> {
-                PList<GeneratedJava> genCodeList = ServiceJavaGen.generate(genOptions,ss.getPackageName(),ss);
-                genCodeList = genCodeList.plusAll(DbJavaGen.generate(genOptions,ss.getPackageName(),ss));
+                PList<GeneratedJava> genCodeList = ServiceJavaGen.generate(genOptions,ss);
+                genCodeList = genCodeList.plusAll(DbJavaGen.generate(genOptions,ss,compiler));
 
                 genCodeList.forEach(g -> {
                     String packagePath = g.name.getPackageName().replace('.',File.separatorChar);
