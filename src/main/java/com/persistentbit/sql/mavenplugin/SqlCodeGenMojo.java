@@ -137,11 +137,9 @@ public class SqlCodeGenMojo extends AbstractMojo {
             });
 
 
-        }catch(MojoExecutionException e){
-              throw e;
         }catch (Exception e){
             getLog().error("General error",e);
-
+            throw new MojoFailureException("Error while generating db code",e);
         }
 
 
