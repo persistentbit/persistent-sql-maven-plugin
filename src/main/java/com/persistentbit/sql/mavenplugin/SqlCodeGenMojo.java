@@ -8,7 +8,7 @@ import com.persistentbit.substema.dependencies.SupplierDef;
 import com.persistentbit.substema.dependencies.SupplierType;
 import com.persistentbit.substema.javagen.GeneratedJava;
 import com.persistentbit.substema.javagen.JavaGenOptions;
-import com.persistentbit.substema.javagen.ServiceJavaGen;
+import com.persistentbit.substema.javagen.SubstemaJavaGen;
 import com.persistentbit.substema.compiler.SubstemaCompiler;
 import com.persistentbit.substema.compiler.values.RSubstema;
 import org.apache.maven.plugin.AbstractMojo;
@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.List;
 
 /*
- * Generate packages from a ROD file
+ * Generate Sql db java classes from a substema file.
  *
  * @goal generate-db
  * @phase generate-db
@@ -73,38 +73,12 @@ public class SqlCodeGenMojo extends AbstractMojo {
     public void execute()  throws MojoExecutionException, MojoFailureException {
         try{
             getLog().info("Compiling DB...");
-            PList<SupplierDef> supplierDefs = PList.empty();
-            try{
-                if(resourcesDirectory.exists()){
-                    getLog().info("Adding Dependency Supplier " + SupplierType.folder + " , " + resourcesDirectory.getAbsolutePath());
-                    supplierDefs = supplierDefs.plus(new SupplierDef(SupplierType.folder,resourcesDirectory.getAbsolutePath()));
 
-                }
-                List<String> classPathElements = project.getCompileClasspathElements();
-                if(classPathElements != null){
-                    supplierDefs = supplierDefs.plusAll(PStream.from(classPathElements).map(s -> {
-                        File f = new File(s);
-                        if(f.exists()){
-                            SupplierType type = f.isDirectory() ? SupplierType.folder : SupplierType.archive;
-                            getLog().info("Adding Dependency Supplier " + type + " , " + f.getAbsolutePath());
-                            return new SupplierDef(type,f.getAbsolutePath());
-                        } else {
-                            return null;
-                        }
-                    }).filterNulls());
-                }
-
-            }catch(Exception e){
-                throw new MojoExecutionException("Error building dependencyList",e);
-            }
-            DependencySupplier dependencySupplier = new DependencySupplier(supplierDefs);
+            DependencySupplier dependencySupplier = createDependencySupplier();
             SubstemaCompiler compiler = new SubstemaCompiler(dependencySupplier);
             PList<RSubstema> substemas = PList.from(packages).map(p -> compiler.compile(p));
 
             substemas.forEach(ss -> getLog().info(ss.toString()));
-
-
-
 
             if ( !outputDirectory.exists() ){
                 if(outputDirectory.mkdirs() == false){
@@ -113,13 +87,11 @@ public class SqlCodeGenMojo extends AbstractMojo {
             }
             project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
             JavaGenOptions genOptions  =   new JavaGenOptions(true,true);
-            //substemas.forEach(ss -> {
-            //    getLog().info("-------- " + ss.getPackageName() + " --------");
-            //    getLog().info(JJPrinter.print(true,new JJMapper().write(ss)));
-            //});
+
+
             substemas.forEach( ss -> {
-                PList<GeneratedJava> genCodeList = ServiceJavaGen.generate(genOptions,ss);
-                genCodeList = genCodeList.plusAll(DbJavaGen.generate(genOptions,ss,compiler));
+                SubstemaJavaGen.generateAndWriteToFiles(compiler,genOptions,ss,outputDirectory);
+                PList<GeneratedJava> genCodeList = DbJavaGen.generate(genOptions,ss,compiler);
 
                 genCodeList.forEach(g -> {
                     String packagePath = g.name.getPackageName().replace('.',File.separatorChar);
@@ -144,4 +116,35 @@ public class SqlCodeGenMojo extends AbstractMojo {
 
 
     }
+    private DependencySupplier  createDependencySupplier() throws MojoExecutionException{
+
+        getLog().info("Compiling Substemas...");
+        PList<SupplierDef> supplierDefs = PList.empty();
+        try {
+            if (resourcesDirectory.exists()) {
+                getLog().info("Adding Dependency Supplier " + SupplierType.folder + " , " + resourcesDirectory.getAbsolutePath());
+                supplierDefs = supplierDefs.plus(new SupplierDef(SupplierType.folder, resourcesDirectory.getAbsolutePath()));
+
+            }
+            List<String> classPathElements = project.getCompileClasspathElements();
+            if (classPathElements != null) {
+                supplierDefs = supplierDefs.plusAll(PStream.from(classPathElements).map(s -> {
+                    File f = new File(s);
+                    if (f.exists()) {
+                        SupplierType type = f.isDirectory() ? SupplierType.folder : SupplierType.archive;
+                        getLog().info("Adding Dependency Supplier " + type + " , " + f.getAbsolutePath());
+                        return new SupplierDef(type, f.getAbsolutePath());
+                    } else {
+                        return null;
+                    }
+                }).filterNulls());
+            }
+
+        } catch (Exception e) {
+            throw new MojoExecutionException("Error building dependencyList", e);
+        }
+
+        return new DependencySupplier(supplierDefs);
+    }
+
 }
