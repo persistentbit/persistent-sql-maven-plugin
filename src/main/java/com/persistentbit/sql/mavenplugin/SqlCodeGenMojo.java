@@ -2,7 +2,7 @@ package com.persistentbit.sql.mavenplugin;
 
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.collections.PStream;
-import com.persistentbit.sql.codegen.DbJavaGen;
+import com.persistentbit.sql.staticsql.codegen.DbJavaGen;
 import com.persistentbit.substema.dependencies.DependencySupplier;
 import com.persistentbit.substema.dependencies.SupplierDef;
 import com.persistentbit.substema.dependencies.SupplierType;
@@ -76,9 +76,9 @@ public class SqlCodeGenMojo extends AbstractMojo {
 
             DependencySupplier dependencySupplier = createDependencySupplier();
             SubstemaCompiler compiler = new SubstemaCompiler(dependencySupplier);
-            PList<RSubstema> substemas = PList.from(packages).map(p -> compiler.compile(p));
+            //PList<RSubstema> substemas = PList.from(packages).map(p -> compiler.compile(p));
 
-            substemas.forEach(ss -> getLog().info(ss.toString()));
+            //substemas.forEach(ss -> getLog().info(ss.toString()));
 
             if ( !outputDirectory.exists() ){
                 if(outputDirectory.mkdirs() == false){
@@ -89,9 +89,9 @@ public class SqlCodeGenMojo extends AbstractMojo {
             JavaGenOptions genOptions  =   new JavaGenOptions(true,true);
 
 
-            substemas.forEach( ss -> {
-                SubstemaJavaGen.generateAndWriteToFiles(compiler,genOptions,ss,outputDirectory);
-                PList<GeneratedJava> genCodeList = DbJavaGen.generate(genOptions,ss,compiler);
+            PStream.from(packages).forEach( packageName -> {
+                //SubstemaJavaGen.generateAndWriteToFiles(compiler,genOptions,ss,outputDirectory);
+                PList<GeneratedJava> genCodeList = DbJavaGen.generate(genOptions,packageName,compiler);
 
                 genCodeList.forEach(g -> {
                     String packagePath = g.name.getPackageName().replace('.',File.separatorChar);
