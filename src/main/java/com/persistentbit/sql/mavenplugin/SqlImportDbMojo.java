@@ -53,7 +53,7 @@ public class SqlImportDbMojo extends AbstractSqlMojo{
 				RSubstema     baseSubstema = compiler.compile(p);
 				DbSubstemaGen gen          = new DbSubstemaGen(connectionProvider, baseSubstema, compiler, null, null);
 				gen.loadTables();
-				baseSubstema = gen.replaceBase(false);
+				baseSubstema = gen.replaceBase(true);
 				SubstemaSourceGenerator codeGen = new SubstemaSourceGenerator();
 				codeGen.addSubstema(baseSubstema);
 				IO.writeFile(codeGen
