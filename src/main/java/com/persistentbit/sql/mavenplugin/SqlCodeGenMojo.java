@@ -3,148 +3,87 @@ package com.persistentbit.sql.mavenplugin;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.collections.PStream;
 import com.persistentbit.sql.staticsql.codegen.DbJavaGen;
+import com.persistentbit.substema.compiler.SubstemaCompiler;
 import com.persistentbit.substema.dependencies.DependencySupplier;
-import com.persistentbit.substema.dependencies.SupplierDef;
-import com.persistentbit.substema.dependencies.SupplierType;
 import com.persistentbit.substema.javagen.GeneratedJava;
 import com.persistentbit.substema.javagen.JavaGenOptions;
-import com.persistentbit.substema.javagen.SubstemaJavaGen;
-import com.persistentbit.substema.compiler.SubstemaCompiler;
-import com.persistentbit.substema.compiler.values.RSubstema;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-/*
+/**
  * Generate Sql db java classes from a substema file.
- *
- * @goal generate-db
- * @phase generate-db
- *
- * @description Generate db java files
- */
+ **/
 @Mojo(
-        name="generate-db",
-        defaultPhase = LifecyclePhase.GENERATE_SOURCES,
-        requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME
+	name = "generate-db",
+	defaultPhase = LifecyclePhase.GENERATE_SOURCES,
+	requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME
 )
-public class SqlCodeGenMojo extends AbstractMojo {
-    /*
-     * @parameter property="project"
-     * @required
-     * @readonly
-     * @since 1.0
-     */
-    @Parameter(property = "project",required = true, readonly = true)
-    MavenProject project;
+public class SqlCodeGenMojo extends AbstractSqlMojo{
 
 
-
-    /*
-     * @parameter default-value="target/generated-packages/rod"
-     * @required
-     */
-    @Parameter(defaultValue = "target/generated-sources/db",required = true)
-    File outputDirectory;
-
-    @Parameter(defaultValue = "src/main/resources",required = true)
-    File resourcesDirectory;
-
-    /*
-     * Sources
-     *
-     * @parameter
-     * @required
-     */
-    @Parameter(name="packages",required = true)
-    List<String> packages;
+	@Parameter(defaultValue = "target/generated-sources/db", required = true)
+	File outputDirectory;
 
 
-    public void execute()  throws MojoExecutionException, MojoFailureException {
-        try{
-            getLog().info("Compiling DB...");
-
-            DependencySupplier dependencySupplier = createDependencySupplier();
-            SubstemaCompiler compiler = new SubstemaCompiler(dependencySupplier);
-            //PList<RSubstema> substemas = PList.from(packages).map(p -> compiler.compile(p));
-
-            //substemas.forEach(ss -> getLog().info(ss.toString()));
-
-            if ( !outputDirectory.exists() ){
-                if(outputDirectory.mkdirs() == false){
-                    throw new MojoExecutionException("Can't create output folder " + outputDirectory.getAbsolutePath());
-                }
-            }
-            project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
-            JavaGenOptions genOptions  =   new JavaGenOptions(true,true);
+	@Parameter(name = "packages", required = true)
+	List<String> packages;
 
 
-            PStream.from(packages).forEach( packageName -> {
-                //SubstemaJavaGen.generateAndWriteToFiles(compiler,genOptions,ss,outputDirectory);
-                PList<GeneratedJava> genCodeList = DbJavaGen.generate(genOptions,packageName,compiler);
+	public void execute() throws MojoExecutionException, MojoFailureException {
+		try {
+			getLog().info("Compiling DB...");
 
-                genCodeList.forEach(g -> {
-                    String packagePath = g.name.getPackageName().replace('.',File.separatorChar);
-                    File dest = new File(outputDirectory,packagePath);
-                    if(dest.exists() == false){ dest.mkdirs(); }
-                    dest = new File(dest,g.name.getClassName() + ".java");
-                    getLog().info("Generating " + dest.getAbsolutePath());
-                    try(FileWriter fw = new FileWriter(dest)){
-                        fw.write(g.code);
-                    }catch (IOException io){
-                        getLog().error(io);
-                        throw new RuntimeException("Can't write to " + dest.getAbsolutePath());
-                    }
-                });
-            });
+			DependencySupplier dependencySupplier = createDependencySupplier();
+			SubstemaCompiler   compiler           = new SubstemaCompiler(dependencySupplier);
+			//PList<RSubstema> substemas = PList.from(packages).map(p -> compiler.compile(p));
 
+			//substemas.forEach(ss -> getLog().info(ss.toString()));
 
-        }catch (Exception e){
-            getLog().error("General error",e);
-            throw new MojoFailureException("Error while generating db code",e);
-        }
+			if(!outputDirectory.exists()) {
+				if(outputDirectory.mkdirs() == false) {
+					throw new MojoExecutionException("Can't create output folder " + outputDirectory.getAbsolutePath());
+				}
+			}
+			project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
+			JavaGenOptions genOptions = new JavaGenOptions(true, true);
 
 
-    }
-    private DependencySupplier  createDependencySupplier() throws MojoExecutionException{
+			PStream.from(packages).forEach(packageName -> {
+				//SubstemaJavaGen.generateAndWriteToFiles(compiler,genOptions,ss,outputDirectory);
+				PList<GeneratedJava> genCodeList = DbJavaGen.generate(genOptions, packageName, compiler);
 
-        getLog().info("Compiling Substemas...");
-        PList<SupplierDef> supplierDefs = PList.empty();
-        try {
-            if (resourcesDirectory.exists()) {
-                getLog().info("Adding Dependency Supplier " + SupplierType.folder + " , " + resourcesDirectory.getAbsolutePath());
-                supplierDefs = supplierDefs.plus(new SupplierDef(SupplierType.folder, resourcesDirectory.getAbsolutePath()));
+				genCodeList.forEach(g -> {
+					String packagePath = g.name.getPackageName().replace('.', File.separatorChar);
+					File   dest        = new File(outputDirectory, packagePath);
+					if(dest.exists() == false) { dest.mkdirs(); }
+					dest = new File(dest, g.name.getClassName() + ".java");
+					getLog().info("Generating " + dest.getAbsolutePath());
+					try(FileWriter fw = new FileWriter(dest)) {
+						fw.write(g.code);
+					} catch(IOException io) {
+						getLog().error(io);
+						throw new RuntimeException("Can't write to " + dest.getAbsolutePath());
+					}
+				});
+			});
 
-            }
-            List<String> classPathElements = project.getCompileClasspathElements();
-            if (classPathElements != null) {
-                supplierDefs = supplierDefs.plusAll(PStream.from(classPathElements).map(s -> {
-                    File f = new File(s);
-                    if (f.exists()) {
-                        SupplierType type = f.isDirectory() ? SupplierType.folder : SupplierType.archive;
-                        getLog().info("Adding Dependency Supplier " + type + " , " + f.getAbsolutePath());
-                        return new SupplierDef(type, f.getAbsolutePath());
-                    } else {
-                        return null;
-                    }
-                }).filterNulls());
-            }
 
-        } catch (Exception e) {
-            throw new MojoExecutionException("Error building dependencyList", e);
-        }
+		} catch(Exception e) {
+			getLog().error("General error", e);
+			throw new MojoFailureException("Error while generating db code", e);
+		}
 
-        return new DependencySupplier(supplierDefs);
-    }
+
+	}
+
 
 }
