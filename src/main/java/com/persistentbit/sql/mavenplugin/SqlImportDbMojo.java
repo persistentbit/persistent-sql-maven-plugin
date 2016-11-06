@@ -29,7 +29,6 @@ import java.util.List;
 public class SqlImportDbMojo extends AbstractSqlMojo{
 
 
-
 	@Parameter(required = true)
 	String       dbDriverClass;
 	@Parameter(required = true)
@@ -41,8 +40,9 @@ public class SqlImportDbMojo extends AbstractSqlMojo{
 	@Parameter(name = "packages", required = true)
 	List<String> packages;
 
-	public void execute()  throws MojoExecutionException, MojoFailureException {
-		try{
+	@Override
+	public void execute() throws MojoExecutionException, MojoFailureException {
+		try {
 			getLog().info("Creating database connection");
 			SimpleConnectionProvider connectionProvider = new SimpleConnectionProvider(
 				dbDriverClass, dbUrl, dbUserName, dbPassword
@@ -51,20 +51,20 @@ public class SqlImportDbMojo extends AbstractSqlMojo{
 			packages.forEach(p -> {
 				getLog().info("Importing db for package " + p);
 				RSubstema     baseSubstema = compiler.compile(p);
-				DbSubstemaGen gen          = new DbSubstemaGen(connectionProvider, baseSubstema, compiler, null, null);
+				DbSubstemaGen gen          = new DbSubstemaGen(connectionProvider, baseSubstema, compiler);
 				gen.loadTables();
 				baseSubstema = gen.replaceBase(true);
 				SubstemaSourceGenerator codeGen = new SubstemaSourceGenerator();
 				codeGen.addSubstema(baseSubstema);
-				IO.writeFile(codeGen
-								 .toString(), new File(resourcesDirectory, p + DependencySupplier.substemaDefFileExtension));
+				IO.writeFile(codeGen.toString(),
+							 new File(resourcesDirectory, p + DependencySupplier.substemaDefFileExtension)
+				);
 			});
 
 
-
-		}catch (Exception e){
-			getLog().error("General error",e);
-			throw new MojoFailureException("Error while generating db code",e);
+		} catch(Exception e) {
+			getLog().error("General error", e);
+			throw new MojoFailureException("Error while generating db code", e);
 		}
 
 	}
