@@ -43,7 +43,7 @@ public class SqlImportDbMojo extends AbstractSqlMojo{
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		try {
-			getLog().info("Creating database connection");
+			getLog().info("Creating database connection to " + dbUrl);
 			SimpleConnectionSupplier connectionProvider = new SimpleConnectionSupplier(
 				dbDriverClass, dbUrl, dbUserName, dbPassword
 			);
