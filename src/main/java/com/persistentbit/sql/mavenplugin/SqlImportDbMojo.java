@@ -1,8 +1,9 @@
 package com.persistentbit.sql.mavenplugin;
 
 import com.persistentbit.core.utils.IO;
-import com.persistentbit.sql.connect.SimpleConnectionProvider;
 
+
+import com.persistentbit.sql.connect.SimpleConnectionSupplier;
 import com.persistentbit.sql.substemagen.DbSubstemaGen;
 import com.persistentbit.substema.compiler.SubstemaCompiler;
 import com.persistentbit.substema.compiler.values.RSubstema;
@@ -45,7 +46,7 @@ public class SqlImportDbMojo extends AbstractSqlMojo{
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		try {
 			getLog().info("Creating database connection to " + dbUrl);
-			SimpleConnectionProvider connectionProvider = new SimpleConnectionProvider(
+			SimpleConnectionSupplier connectionProvider = new SimpleConnectionSupplier(
 				dbDriverClass, dbUrl, dbUserName, dbPassword
 			);
 			SubstemaCompiler compiler = new SubstemaCompiler(createDependencySupplier());
