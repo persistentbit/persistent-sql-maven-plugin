@@ -1,8 +1,6 @@
 package com.persistentbit.sql.mavenplugin;
 
 import com.persistentbit.core.utils.IO;
-
-
 import com.persistentbit.sql.connect.SimpleConnectionSupplier;
 import com.persistentbit.sql.substemagen.DbSubstemaGen;
 import com.persistentbit.substema.compiler.SubstemaCompiler;
@@ -16,6 +14,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.List;
 
 /**
@@ -59,7 +58,8 @@ public class SqlImportDbMojo extends AbstractSqlMojo{
 				SubstemaSourceGenerator codeGen = new SubstemaSourceGenerator();
 				codeGen.addSubstema(baseSubstema);
 				IO.writeFile(codeGen.toString(),
-							 new File(resourcesDirectory, p + DependencySupplier.substemaDefFileExtension)
+							 new File(resourcesDirectory, p + DependencySupplier.substemaDefFileExtension),
+							 Charset.defaultCharset()
 				);
 			});
 
