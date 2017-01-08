@@ -76,8 +76,8 @@ public class SqlCodeGenMojo extends AbstractSqlMojo{
 						getLog().error("Generated result: " + bout.toString());
 					}
 					Result<File> resultFile = resultGen.flatMap(rg -> rg.writeToFile(outputDirectory));
-					resultFile.ifFailure(t -> getLog().error(t));
-					resultFile.ifPresent(f -> getLog().info("Generated " + f.getAbsolutePath()));
+					resultFile.ifFailure(failure -> getLog().error(failure.getException()));
+					resultFile.ifPresent(success -> getLog().info("Generated " + success.getValue().getAbsolutePath()));
 
 				});
 /*
