@@ -2,9 +2,9 @@ package com.persistentbit.sql.mavenplugin;
 
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.collections.PStream;
-import com.persistentbit.core.logging.AnsiColor;
-import com.persistentbit.core.logging.LogPrinter;
+import com.persistentbit.core.logging.printing.LogPrinter;
 import com.persistentbit.core.result.Result;
+import com.persistentbit.core.utils.AnsiColor;
 import com.persistentbit.core.utils.IndentOutputStream;
 import com.persistentbit.core.utils.IndentPrintStream;
 import com.persistentbit.sql.staticsql.codegen.DbJavaGen;
