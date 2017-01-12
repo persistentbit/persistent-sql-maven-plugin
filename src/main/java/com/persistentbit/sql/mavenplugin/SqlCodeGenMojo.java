@@ -2,11 +2,7 @@ package com.persistentbit.sql.mavenplugin;
 
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.collections.PStream;
-import com.persistentbit.core.logging.printing.LogPrinter;
 import com.persistentbit.core.result.Result;
-import com.persistentbit.core.utils.AnsiColor;
-import com.persistentbit.core.utils.IndentOutputStream;
-import com.persistentbit.core.utils.IndentPrintStream;
 import com.persistentbit.sql.staticsql.codegen.DbJavaGen;
 import com.persistentbit.substema.compiler.SubstemaCompiler;
 import com.persistentbit.substema.dependencies.DependencySupplier;
@@ -19,9 +15,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.nio.charset.Charset;
 import java.util.List;
 
 /**
@@ -66,7 +60,7 @@ public class SqlCodeGenMojo extends AbstractSqlMojo{
 				//SubstemaJavaGen.generateAndWriteToFiles(compiler,genOptions,ss,outputDirectory);
 				PList<Result<GeneratedJava>> genCodeList = DbJavaGen.generate(genOptions, packageName, compiler);
 				genCodeList.forEach(resultGen -> {
-					{
+					/*{
 						ByteArrayOutputStream bout = new ByteArrayOutputStream();
 						LogPrinter lp = IndentOutputStream.of(bout)
 							.flatMap(os -> IndentPrintStream.of(os, Charset.forName("UTF-8")))
@@ -74,7 +68,7 @@ public class SqlCodeGenMojo extends AbstractSqlMojo{
 							.orElseThrow();
 						lp.print(resultGen);
 						getLog().error("Generated result: " + bout.toString());
-					}
+					}*/
 					Result<File> resultFile = resultGen.flatMap(rg -> rg.writeToFile(outputDirectory));
 					resultFile.ifFailure(failure -> getLog().error(failure.getException()));
 					resultFile.ifPresent(success -> getLog().info("Generated " + success.getValue().getAbsolutePath()));
