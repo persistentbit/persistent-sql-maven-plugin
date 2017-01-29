@@ -38,6 +38,8 @@ public class SqlImportDbMojo extends AbstractSqlMojo{
 	String       dbUserName;
 	@Parameter
 	String       dbPassword;
+	@Parameter
+	String       dbSchema;
 	@Parameter(name = "packages", required = true)
 	List<String> packages;
 
@@ -53,6 +55,9 @@ public class SqlImportDbMojo extends AbstractSqlMojo{
 				getLog().info("Importing db for package " + p);
 				RSubstema     baseSubstema = compiler.compile(p).orElseThrow();
 				DbSubstemaGen gen          = new DbSubstemaGen(connectionProvider, baseSubstema, compiler);
+				if(dbSchema != null) {
+					gen.setSchema(dbSchema);
+				}
 				gen.loadTables().orElseThrow();
 				baseSubstema = gen.replaceBase(true);
 				SubstemaSourceGenerator codeGen = new SubstemaSourceGenerator();
