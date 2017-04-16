@@ -1,6 +1,7 @@
 package com.persistentbit.sql.mavenplugin;
 
-import com.persistentbit.core.utils.IO;
+
+import com.persistentbit.core.io.IOFiles;
 import com.persistentbit.sql.connect.SimpleConnectionSupplier;
 import com.persistentbit.sql.substemagen.DbSubstemaGen;
 import com.persistentbit.substema.compiler.SubstemaCompiler;
@@ -62,7 +63,7 @@ public class SqlImportDbMojo extends AbstractSqlMojo{
 				baseSubstema = gen.replaceBase(true);
 				SubstemaSourceGenerator codeGen = new SubstemaSourceGenerator();
 				codeGen.addSubstema(baseSubstema);
-				IO.writeFile(codeGen.toString(),
+				IOFiles.write(codeGen.toString(),
 							 new File(resourcesDirectory, p + DependencySupplier.substemaDefFileExtension),
 							 Charset.defaultCharset()
 				);
